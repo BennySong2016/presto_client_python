@@ -1,0 +1,34 @@
+#!/usr/bin/python
+# -*-  coding:utf-8  -*-
+
+import sys   
+reload(sys)
+sys.setdefaultencoding('utf-8')
+import prestodb
+
+def presto_client(preSQL):
+    #prehost = '10.123.107.27'
+    prehost = '10.123.107.23'
+    #preport = 8080
+    preport = 8069
+    preuser = 'presto@CONSUL.LECLOUD.COM'
+    precatalog = 'hive'
+    preschema = 'clientdata'
+
+    conn=prestodb.dbapi.connect(
+        host=prehost,
+        port=preport,
+        user=preuser,
+        catalog=precatalog,
+        schema=preschema
+    )
+    cur = conn.cursor()
+    cur.execute(preSQL)
+    rows = cur.fetchall()
+    for r in rows:
+        print r
+    
+if __name__ == '__main__':
+    #psql = "select count(*) as cnt,time from clientdata.block_log_stat where time >= '20240227100905' group by time order by time"
+    psql = "select round(sum(is_natural_block)*100.0/count(*),4) as lagging,client_isp,client_province,cloudchart_5minute,app_name from block_log_stat where time >='20240226083005' and time <='20240226090705' and app_name in ('superlive', 'media_cibn', 'LetvIOSPhoneClient', 'LetvIOSPadClient', 'child_cibn', 'LetvAndroidPhoneClient', 'letv_smallapp', 'H5Player', 'TV_H5_360') and client_isp in ('中国电信','中国联通','中国移动','长城宽带') group by client_isp,client_province,cloudchart_5minute,app_name"
+    presto_client(psql)
